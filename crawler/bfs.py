@@ -10,7 +10,7 @@ def breadth_first_search(urls, depth=3):
         results = fetcher.fetch_all(to_visit)
         for url, content in results.items():
             if content:
-                links = parser.parse_links(content)
+                links = parser.parse_links(url, content)
                 for link in links:
                     if link not in visited:
                         visited.add(link)
