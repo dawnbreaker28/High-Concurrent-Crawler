@@ -18,7 +18,7 @@ def requests_session(retries=3, backoff_factor=0.3, status_forcelist=(500, 502, 
     session.mount('https://', adapter)
     return session
 
-def fetch_content(url, timeout=10):
+def fetch_content(url, timeout=1):
     session = requests_session()
     try:
         response = session.get(url, timeout=timeout)
