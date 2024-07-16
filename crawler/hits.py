@@ -73,8 +73,8 @@ def hits(graph, max_iterations=100, tol=1e-6):
 
     return authority_scores, hub_scores
 
-def filter_authorities(urls):
-    graph = build_graph(urls)
+def filter_authorities(urls, graph):
+    # graph = build_graph(urls)
     authority_scores, _ = hits(graph)
     sorted_authorities = sorted(authority_scores.items(), key=lambda x: x[1], reverse=True)
     return [url for url, score in sorted_authorities]
@@ -87,4 +87,4 @@ if __name__ == "__main__":
     ]
 
     top_authorities = filter_authorities(urls)
-    print("Top authority URLs:", top_authorities)
+    # print("Top authority URLs:", top_authorities)

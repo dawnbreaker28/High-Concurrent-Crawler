@@ -34,7 +34,7 @@ def fetch_content(url, timeout=1):
         logger.log(f"Error fetching {url}: {err}")
     return url, ""
 
-def fetch_all(urls, max_workers=10):
+def fetch_all(urls, max_workers=100):
     results = {}
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = {executor.submit(fetch_content, url): url for url in urls}

@@ -5,9 +5,9 @@ import config
 def main():
     urls = file_io.read_urls(config.SOURCE_FILE)
     print(f"Read {len(urls)} URLs from source file.")
-    results = bfs.breadth_first_search(urls, depth=config.SEARCH_DEPTH)
+    results, graph = bfs.breadth_first_search(urls, depth=config.SEARCH_DEPTH)
     print(f"BFS completed, found {len(results)} URLs.")
-    authority_urls = hits.filter_authorities(results)
+    authority_urls = hits.filter_authorities(results, graph)
     print(f"Filtered {len(authority_urls)} authority URLs.")
     for url in authority_urls:
         url, content = fetcher.fetch_content(url)
