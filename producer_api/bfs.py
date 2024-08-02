@@ -1,4 +1,4 @@
-from crawler import fetcher, parser
+from producer_api import fetcher, parser
 from utils import logger
 from collections import defaultdict
 

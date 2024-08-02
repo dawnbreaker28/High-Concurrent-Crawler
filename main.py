@@ -1,4 +1,4 @@
-from crawler import fetcher, parser, bfs, hits
+from producer_api import fetcher, parser, bfs, hits
 from utils import file_io, logger
 import config
 
@@ -17,10 +17,6 @@ def main():
         else:
             print(f"Failed to fetch content for {url}.")
     print("Crawling complete.")
-
-if __name__ == "__main__":
-    main()
-
 
 if __name__ == "__main__":
     main()

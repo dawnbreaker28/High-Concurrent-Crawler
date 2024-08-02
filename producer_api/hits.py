@@ -14,7 +14,7 @@ def fetch_url(url):
         print(f"Error fetching {url}: {e}")
         return url, None
 
-def build_graph(urls, max_workers=10):
+def build_graph(urls, max_workers=100):
     graph = defaultdict(list)
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_url = {executor.submit(fetch_url, url): url for url in urls}
@@ -77,14 +77,13 @@ def filter_authorities(urls, graph):
     # graph = build_graph(urls)
     authority_scores, _ = hits(graph)
     sorted_authorities = sorted(authority_scores.items(), key=lambda x: x[1], reverse=True)
+    print(sorted_authorities)
     return [url for url, score in sorted_authorities]
 
 if __name__ == "__main__":
     urls = [
         "https://www.bbc.com",
-        "https://www.cnn.com",
-        "https://www.nytimes.com"
     ]
-
-    top_authorities = filter_authorities(urls)
-    # print("Top authority URLs:", top_authorities)
+    graph = []
+    top_authorities = filter_authorities(urls, graph=graph)
+    print("Top authority URLs:", top_authorities)
