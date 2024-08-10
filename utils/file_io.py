@@ -7,7 +7,8 @@ def read_urls(file_path):
 
 def sanitize_filename(url):
     # 只保留字母、数字和一些常见字符，将其他字符替换为下划线
-    return re.sub(r'[^a-zA-Z0-9_\-\.]', '_', url)
+    sanitized = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', url)
+    return sanitized[:200]
 
 def save_content(url, content, result_dir):
     filename = os.path.join(result_dir, sanitize_filename(url) + '.html')

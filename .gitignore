@@ -4,6 +4,7 @@ error.txt
 results/
 *.tgz
 kafka_2.12-3.8.0/
+.zip
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

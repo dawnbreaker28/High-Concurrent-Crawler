@@ -1,10 +1,17 @@
-import requests
-from bs4 import BeautifulSoup
-import json
-from kafka import KafkaProducer
+import threading
+from utils.kafka_instance import producer
 
-def send_to_kafka(topic, data):
-    producer = KafkaProducer(bootstrap_servers='localhost:9092',
-                             value_serializer=lambda v: json.dumps(v).encode('utf-8'))
-    producer.send(topic, data)
-    producer.flush()
+def send_message(topic, message):
+    """使用全局KafkaProducer实例发送消息"""
+    producer.send(topic, message)
+    producer.flush()  # 确保消息被立即发送
+    print(f"Message sent to {topic}")
+
+def start_producer_thread(topic, message):
+    """创建并启动一个线程来发送消息"""
+    producer_thread = threading.Thread(
+        target=send_message,
+        args=(topic, message)
+    )
+    producer_thread.start()
+    return producer_thread

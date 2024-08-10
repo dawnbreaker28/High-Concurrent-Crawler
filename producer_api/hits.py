@@ -57,7 +57,7 @@ def normalize_scores(scores):
         scores[node] /= norm
     return scores
 
-def hits(graph, max_iterations=100, tol=1e-6):
+def hit(graph, max_iterations=100, tol=1e-6):
     authority_scores, hub_scores = initialize_scores(graph)
 
     for _ in range(max_iterations):
@@ -75,7 +75,7 @@ def hits(graph, max_iterations=100, tol=1e-6):
 
 def filter_authorities(urls, graph):
     # graph = build_graph(urls)
-    authority_scores, _ = hits(graph)
+    authority_scores, _ = hit(graph)
     sorted_authorities = sorted(authority_scores.items(), key=lambda x: x[1], reverse=True)
     print(sorted_authorities)
     return [url for url, score in sorted_authorities]

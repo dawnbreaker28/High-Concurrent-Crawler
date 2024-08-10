@@ -1,7 +1,9 @@
 from kafka.admin import KafkaAdminClient, NewTopic
-from kafka import KafkaConsumer
+from kafka import KafkaConsumer, KafkaProducer
 import json
 import threading
+import time
+from kafka.errors import TopicAlreadyExistsError
 
 def create_topics():
     admin_client = KafkaAdminClient(
@@ -14,7 +16,10 @@ def create_topics():
     topic_list.append(NewTopic(name="categorizer.news", num_partitions=1, replication_factor=1))
     topic_list.append(NewTopic(name="collector.news", num_partitions=1, replication_factor=1))
 
-    admin_client.create_topics(new_topics=topic_list, validate_only=False)
+    try:
+        admin_client.create_topics(new_topics=topic_list, validate_only=False)
+    except TopicAlreadyExistsError as e:
+        print(f"Topics already exist: {e}")
 
 # Function to start a Kafka consumer
 def start_consumer(topic, group_id, consume_and_store_func):
@@ -29,18 +34,8 @@ def start_consumer(topic, group_id, consume_and_store_func):
     for message in consumer:
         # Decode the Kafka message
         message_content = message.value.decode('utf-8')
+        # print(f"message received for {topic} and content {message_content}")
         message_data = json.loads(message_content)
         # Call the appropriate consume_and_store function
         consume_and_store_func(message_data)
 
-def start_producer(topic, bootstrap_servers='localhost:9092'):
-    producer = KafkaProducer(
-        bootstrap_servers=bootstrap_servers,
-        value_serializer=lambda v: json.dumps(v).encode('utf-8')
-    )
-
-    while True:
-        message = {"key": "value", "timestamp": time.time()}
-        producer.send(topic, value=message)
-        print(f"Sent message to {topic}: {message}")
-        time.sleep(5)
