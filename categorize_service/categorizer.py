@@ -2,9 +2,16 @@ from bs4 import BeautifulSoup
 from transformers import BertTokenizer, BertForSequenceClassification
 from transformers import pipeline
 from kafka import KafkaConsumer, KafkaProducer
+from producer_api import send_kafka
 import json
 
-classifier = pipeline('text-classification')
+# 预先加载BERT模型和分词器
+tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+model = BertForSequenceClassification.from_pretrained('nlptown/bert-base-multilingual-uncased-sentiment')
+
+# 预先初始化分类器
+classifier = pipeline('zero-shot-classification', model=model, tokenizer=tokenizer, device=0)  # 使用GPU
+
 
 def classify_news(message):
 
@@ -13,9 +20,11 @@ def classify_news(message):
         try:
             message = json.loads(message)
         except json.JSONDecodeError as e:
-            print(f"Error decoding JSON: {e}")
+            print("Error decoding JSON")
             return None, None
-    
+    elif not isinstance(message, dict):
+        print(f"Unexpected message format: {type(message)}")
+        return None, None  
     html_content = message.get('html_content', '')  # 从消息中获取 HTML 内容
     if not html_content:
         print("Error: html_content is None or empty")
@@ -25,38 +34,38 @@ def classify_news(message):
     try:
         soup = BeautifulSoup(html_content, 'html.parser')
     except Exception as e:
-        print(f"Error parsing HTML content: {e}")
+        print("Error parsing HTML content")
         return None, None
     text = soup.get_text()
-
-    # 加载预训练的BERT模型和分词器
-    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-    model = BertForSequenceClassification.from_pretrained('nlptown/bert-base-multilingual-uncased-sentiment')
-
-    # 使用pipeline进行分类
-    classifier = pipeline('zero-shot-classification', model=model, tokenizer=tokenizer)
 
     # 定义可能的新闻分类标签
     candidate_labels = ['sports', 'politics', 'technology', 'entertainment', 'business']
 
     # 进行分类预测
     result = classifier(text, candidate_labels)
-    return result[0]['label'], text
+    return result['labels'][0], text
 
 def consume_and_produce(message):
-    # consumer = KafkaConsumer('producer.news', bootstrap_servers='localhost:9092',
-    #                          value_deserializer=lambda m: json.loads(m.decode('utf-8')))
-    producer = KafkaProducer(bootstrap_servers='localhost:9092',
-                             value_serializer=lambda v: json.dumps(v).encode('utf-8'))
 
-    # for message in consumer:
+    # 接收并处理消息
     print("message received from producer.news")
-    category, text= classify_news(message)
-    # message['category'] = category
-    output = [category, text]
-    producer.send('categorizer.news', output)
+    category, text = classify_news(message)
+
+    if category is None:
+        print("Failed to classify message.")
+        return
+
+    # 创建输出消息
+    output = {
+        'category': category,
+        'text': text
+    }
+
+    # 将消息转换为JSON格式并发送
+    output_json = json.dumps(output)
     print("send message to collector")
-    producer.flush()
+    send_kafka.send_message('categorizer.news', output_json)
+
 
 if __name__ == "__main__":
     consume_and_produce()
