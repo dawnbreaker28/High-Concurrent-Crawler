@@ -2,29 +2,45 @@ import threading
 from utils.kafka_instance import producer
 import json
 
-def send_message(topic, message):
-    """使用全局KafkaProducer实例发送消息"""
-    producer.send(topic, message)
-    producer.flush()  # 确保消息被立即发送
-    print(f"Message sent to {topic}")
+def send_message(topic, message): 
+    """
+    使用全局KafkaProducer实例发送消息
+    Sends a message to the specified Kafka topic.
+
+    Args:
+        topic (str): The name of the Kafka topic.
+        message (bytes): The message to send. Must be in bytes format.
+        
+    Output:
+        None: This function sends a message and doesn't return any value.
+    """
+    try:
+        producer.send(topic, message)
+        producer.flush()  # Ensure the message is sent immediately
+        print(f"Message sent to {topic}")
+    except Exception as e:
+        print(f"Failed to send message to {topic}: {e}")
 
 
-def send_message_to_unknown_type(topic, content):
-    # 假设消费者期望接收的消息是JSON格式的
+def send_message_unknown_type(topic, content):
     if isinstance(content, bytes):
-        message = content.decode('utf-8')
+        message_json = content
     else:
-        message = {'html_content': content}
+        try:
+            message_json = json.dumps(content).encode('utf-8')
+
+            print(f"Serialized message")  # Debug log
+        except Exception as e:
+            print(f"Failed to serialize message")
+            return
     
     try:
-        message_json = json.dumps(message)
-        print("Serialized message: ")  # Debug log
+        producer.send(topic, message_json)
+        producer.flush()
+        print(f"Message sent to {topic}")
     except Exception as e:
-        print("Failed to serialize message:")
-        return
-    
-    producer.send(topic, message_json.encode('utf-8'))
-    producer.flush()
+        print(f"Failed to send message: {e}")
+
 
 
 def start_producer_thread(topic, message):

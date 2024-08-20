@@ -5,6 +5,7 @@ results/
 *.tgz
 kafka_2.12-3.8.0/
 .zip
+classifier/saved_model
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

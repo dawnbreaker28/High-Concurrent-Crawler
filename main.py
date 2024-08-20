@@ -1,5 +1,5 @@
 from producer_api import fetcher, parser, bfs, hits, send_kafka
-from utils import file_io, logger, kafka_helper
+from utils import file_io, logger, kafka_helper, kafka_instance
 from categorize_service import categorizer
 from collector_service import collector
 import config
@@ -12,6 +12,8 @@ def main():
 
     kafka_helper.create_topics()
 
+    # producer_thread = kafka_helper.KafkaProducerThread(kafka_instance.producer, "producer.news")
+    
     collector_thread = threading.Thread(
         target=kafka_helper.start_consumer,
         args=('categorizer.news', 'categorizer_group', collector.consume_and_store)
@@ -34,11 +36,11 @@ def main():
     for url in authority_urls:
         url, content = fetcher.fetch_content(url)
         if content:
-            file_io.save_content(url, content, config.RESULT_DIR)
-            print(f"Saved content for {url}.")
-            send_kafka.send_message_to_unknown_type("producer.news", content)
+            # file_io.save_content(url, content, config.RESULT_DIR)
+            print(f"Saved content.")
+            send_kafka.send_message_unknown_type("producer.news", content)
         else:
-            print(f"Failed to fetch content for {url}.")
+            print(f"Failed to fetch content for.")
     print("Crawling complete.")
 
     categorizer_thread.join()

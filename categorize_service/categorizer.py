@@ -13,6 +13,7 @@ model = BertForSequenceClassification.from_pretrained('nlptown/bert-base-multili
 classifier = pipeline('zero-shot-classification', model=model, tokenizer=tokenizer, device=0)  # 使用GPU
 
 
+
 def classify_news(message):
 
     # 如果 message 是字符串，先解析为字典
@@ -25,7 +26,7 @@ def classify_news(message):
     elif not isinstance(message, dict):
         print(f"Unexpected message format: {type(message)}")
         return None, None  
-    html_content = message.get('html_content', '')  # 从消息中获取 HTML 内容
+    html_content = message.get('content', '')  # 从消息中获取 HTML 内容
     if not html_content:
         print("Error: html_content is None or empty")
         return None, None
@@ -42,14 +43,15 @@ def classify_news(message):
     candidate_labels = ['sports', 'politics', 'technology', 'entertainment', 'business']
 
     # 进行分类预测
-    result = classifier(text, candidate_labels)
-    return result['labels'][0], text
+    # result = classifier(text, candidate_labels)
+    return candidate_labels[0], "testtext"
 
 def consume_and_produce(message):
 
     # 接收并处理消息
     print("message received from producer.news")
     category, text = classify_news(message)
+    category = "sports" # for testing 
 
     if category is None:
         print("Failed to classify message.")
@@ -57,14 +59,14 @@ def consume_and_produce(message):
 
     # 创建输出消息
     output = {
-        'category': category,
-        'text': text
+        'category': "sports",
+        'text': "testtext"
     }
 
     # 将消息转换为JSON格式并发送
     output_json = json.dumps(output)
     print("send message to collector")
-    send_kafka.send_message('categorizer.news', output_json)
+    send_kafka.send_message('categorizer.news', output_json.encode('utf-8'))  # 添加 encode('utf-8')
 
 
 if __name__ == "__main__":
