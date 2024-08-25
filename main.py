@@ -38,7 +38,8 @@ def main():
         if content:
             # file_io.save_content(url, content, config.RESULT_DIR)
             print(f"Saved content.")
-            send_kafka.send_message_unknown_type("producer.news", content)
+            output = {"content": content}
+            send_kafka.send_message_unknown_type("producer.news", output)
         else:
             print(f"Failed to fetch content for.")
     print("Crawling complete.")
