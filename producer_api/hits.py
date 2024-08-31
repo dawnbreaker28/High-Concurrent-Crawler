@@ -77,7 +77,7 @@ def filter_authorities(urls, graph):
     # graph = build_graph(urls)
     authority_scores, _ = hit(graph)
     sorted_authorities = sorted(authority_scores.items(), key=lambda x: x[1], reverse=True)
-    print(sorted_authorities)
+    # print(sorted_authorities)
     return [url for url, score in sorted_authorities]
 
 if __name__ == "__main__":

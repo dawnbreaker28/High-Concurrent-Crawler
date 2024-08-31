@@ -1,13 +1,26 @@
-from flask import Flask, jsonify
+from sklearn.cluster import KMeans
 from elasticsearch import Elasticsearch
+from sklearn.feature_extraction.text import TfidfVectorizer
+import numpy as np
+from utils.elasticsearch_instance import ESClient
+from publisher_api.clustering import cluster_news, update_news_clusters
 
-app = Flask(__name__)
-es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
+es = ESClient.get_instance()
 
-@app.route('/news', methods=['GET'])
-def get_news():
-    res = es.search(index='news', body={"query": {"match_all": {}}})
-    return jsonify(res['hits']['hits'])
+def fetch_news_data():
+    # 从Elasticsearch中提取新闻数据
+    res = es.search(index="news_index", body={"query": {"match_all": {}}})
+    news_texts = [hit["_source"]["text"] for hit in res['hits']['hits']]
+    return news_texts
 
-if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+def publisher():
+    # 从Elasticsearch中提取新闻数据
+    news_texts = fetch_news_data()
+
+    # 对新闻数据进行聚类分析
+    labels = cluster_news(news_texts, num_clusters=5)
+
+    # 将聚类结果更新到Elasticsearch中
+    update_news_clusters(news_texts, labels)
+
+

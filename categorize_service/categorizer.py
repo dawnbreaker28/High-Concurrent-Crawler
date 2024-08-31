@@ -66,6 +66,7 @@ def classify_news(text):
         text,
         add_special_tokens=True,
         max_length=512,
+        truncation=True,  # 超过512个token的部分将被截断
         padding='max_length',
         return_attention_mask=True,
         return_tensors='pt',
@@ -97,8 +98,9 @@ def consume_and_produce(message):
     print("message received from producer.news")
     text = parse_text(message)
     print(text[:300])
-    # category = classify_news(text) # for testing 
-    category = "sports"
+    category = classify_news(text) # for testing 
+    # category = "sports"
+    print(category)
 
     if category is None:
         print("Failed to classify message.")
@@ -106,14 +108,14 @@ def consume_and_produce(message):
 
     # 创建输出消息
     output = {
-        'category': "sports",
+        'category': category,
         'text': "testtext"
     }
 
     # 将消息转换为JSON格式并发送
     output_json = json.dumps(output)
-    print("send message to collector")
     send_kafka.send_message('categorizer.news', output_json.encode('utf-8'))  # 添加 encode('utf-8')
+    print("send message to collector")
 
 
 if __name__ == "__main__":

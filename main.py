@@ -2,6 +2,7 @@ from producer_api import fetcher, parser, bfs, hits, send_kafka
 from utils import file_io, logger, kafka_helper, kafka_instance
 from categorize_service import categorizer
 from collector_service import collector
+from publisher_api import counter
 import config
 from kafka import KafkaConsumer
 import json
@@ -13,6 +14,11 @@ def main():
     kafka_helper.create_topics()
 
     # producer_thread = kafka_helper.KafkaProducerThread(kafka_instance.producer, "producer.news")
+    counter_thread = threading.Thread(
+        target=kafka_helper.start_consumer,
+        args=('counter.news', 'counter_group', counter.count_and_cluster)
+    )
+    counter_thread.start()
     
     collector_thread = threading.Thread(
         target=kafka_helper.start_consumer,
@@ -44,8 +50,10 @@ def main():
             print(f"Failed to fetch content for.")
     print("Crawling complete.")
 
-    categorizer_thread.join()
+    counter_thread.join()
     collector_thread.join()
+    categorizer_thread.join()
+
 
 if __name__ == "__main__":
     main()
