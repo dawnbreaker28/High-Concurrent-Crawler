@@ -1,13 +1,13 @@
 from kafka import KafkaConsumer
 from elasticsearch import Elasticsearch
 from concurrent.futures import ThreadPoolExecutor
-from keyword_extract import preprocess_and_extract_keywords
+from .keyword_extract import preprocess_and_extract_keywords
+from utils.elasticsearch_instance import ESClient
 import threading
 import json
 
 # 创建Elasticsearch实例
-es = Elasticsearch([{'host': 'localhost', 'port': 9200, 'scheme': 'http'}])
-
+es = ESClient.get_instance()
 
 executor = ThreadPoolExecutor(max_workers=10)  # 你可以根据需要调整线程池大小
 
@@ -32,7 +32,9 @@ def consume_and_store(message):
 
     keywords_with_scores = preprocess_and_extract_keywords(text)
     # 将消息存储到Elasticsearch中
-    store_to_elasticsearch(category, {"text": text, "keywords": keywords_with_scores})
+    print(keywords_with_scores)
+    store_to_elasticsearch("news", {"text": text, "keywords_with_score": keywords_with_scores, "category": category})
+
 
 if __name__ == "__main__":
     consume_and_store()

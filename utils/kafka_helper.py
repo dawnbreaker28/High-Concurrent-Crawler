@@ -4,6 +4,46 @@ import json
 import threading
 import time
 from kafka.errors import TopicAlreadyExistsError
+from categorize_service import categorizer, categorized_news_handler
+from collector_service import collector
+from publisher_api import counter
+
+class KafkaConsumerThread:
+    def __init__(self, topic, group, handler):
+        self.topic = topic
+        self.group = group
+        self.handler = handler
+        self.thread = threading.Thread(target=self.start_consumer)
+
+    def start_consumer(self):
+        start_consumer(self.topic, self.group, self.handler)
+
+    def start(self):
+        self.thread.start()
+
+    def join(self):
+        self.thread.join()
+
+class KafkaThreadManager:
+    def __init__(self):
+        self.consumers = []
+
+    def start_all(self):
+        self.consumers = [
+        KafkaConsumerThread('counter.news', 'counter_group', counter.count_and_cluster),
+        KafkaConsumerThread('categorizer.news', 'categorizer_group', collector.consume_and_store),
+        KafkaConsumerThread('producer.news', 'producer_group', categorizer.consume_and_produce),
+        ]
+        labels = [ "sport", "business",  "tech", "entertainment",  "politics"]
+        for label in labels:
+            self.consumers.append(KafkaConsumerThread(label, label, categorized_news_handler.consume_and_store_news))
+        
+        for consumer in self.consumers:
+            consumer.start()
+
+    def end_all(self):
+        for consumer in self.consumers:
+            consumer.join()
 
 class KafkaProducerThread(threading.Thread):
     def __init__(self, producer, topic, message):

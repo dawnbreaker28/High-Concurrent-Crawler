@@ -28,7 +28,6 @@ def send_message_unknown_type(topic, content):
     else:
         try:
             message_json = json.dumps(content).encode('utf-8')
-
             print(f"Serialized message")  # Debug log
         except Exception as e:
             print(f"Failed to serialize message")

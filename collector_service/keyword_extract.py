@@ -10,20 +10,27 @@ from collections import defaultdict
 nltk.download('stopwords')
 
 # 停止词和词干提取器
-stop_words = set(stopwords.words('english'))
+stop_words = set(stopwords.words('english')) | {"hr", "day", "time", "year", "week", "us", "the", "bbc"}
 stemmer = PorterStemmer()
 
 # 步骤 2: 计算TF-IDF
-vectorizer = TfidfVectorizer(max_df=0.8, max_features=10000)
+vectorizer = TfidfVectorizer(min_df=1 ,max_df=1.0, max_features=10000)
 
 # 步骤 1: 数据预处理
 def preprocess(text):
+    if not text.strip():
+        # 文档为空，执行相应操作
+        print("Document is empty")
+        return ""
     # 去除标点和特殊字符
     text = re.sub(r'\W', ' ', text)
     # 转为小写
     text = text.lower()
     # 去除停止词
     text = ' '.join([word for word in text.split() if word not in stop_words])
+    # 去除短词和数字
+    text = re.sub(r'\b\w{1,2}\b', '', text)
+    text = re.sub(r'\b\d+\b', '', text)
     # 词干提取
     text = ' '.join([stemmer.stem(word) for word in text.split()])
     return text
@@ -32,13 +39,16 @@ def preprocess_and_extract_keywords(news_text):
     # 预处理和关键词提取代码与之前类似
     # 对新闻文本进行预处理...
     preprocessed_text = preprocess(news_text)
-    
+    if not preprocessed_text.strip():
+        # 预处理后的文档为空，执行相应操作
+        print("Preprocessed document is empty")
+        return []
     # 使用TF-IDF提取关键词
     tfidf_matrix = vectorizer.fit_transform([preprocessed_text])
     feature_names = vectorizer.get_feature_names_out()
-    keywords = extract_keywords(tfidf_matrix, feature_names)
+    keywords_with_scores = extract_keywords(tfidf_matrix, feature_names)
     
-    return keywords
+    return keywords_with_scores
 
 
 # 步骤 3: 关键词提取

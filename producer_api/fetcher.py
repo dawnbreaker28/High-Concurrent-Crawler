@@ -18,7 +18,7 @@ def requests_session(retries=3, backoff_factor=0.3, status_forcelist=(500, 502, 
     session.mount('https://', adapter)
     return session
 
-def fetch_content(url, timeout=1):
+def fetch_content(url, timeout=5):
     headers = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
         "Accept-Language": "en-US,en;q=0.9",

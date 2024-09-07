@@ -98,9 +98,7 @@ def consume_and_produce(message):
     print("message received from producer.news")
     text = parse_text(message)
     print(text[:300])
-    category = classify_news(text) # for testing 
-    # category = "sports"
-    print(category)
+    category = classify_news(text) 
 
     if category is None:
         print("Failed to classify message.")
@@ -109,11 +107,12 @@ def consume_and_produce(message):
     # 创建输出消息
     output = {
         'category': category,
-        'text': "testtext"
+        'text': text
     }
 
     # 将消息转换为JSON格式并发送
     output_json = json.dumps(output)
+    send_kafka.send_message(output['category'], output_json.encode('utf-8'))
     send_kafka.send_message('categorizer.news', output_json.encode('utf-8'))  # 添加 encode('utf-8')
     print("send message to collector")
 
